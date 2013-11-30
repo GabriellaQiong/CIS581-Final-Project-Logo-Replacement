@@ -15,7 +15,7 @@ set(gca,'TickDir','out')
 
 % do sift_match
 if sift
-    [~, scores, p1, p2, f1, f2] = sift_match(im1, im2, 0, 10);
+    [~, scores, p1, p2, f1, f2] = sift_match(im1, im2, 0, 30);
 end
 
 % convert thresh to number of matches
@@ -34,7 +34,12 @@ vl_plotframe(f1(:,idx));
 vl_plotframe(f2_o(:,idx));
 
 % ransac
-[H, inliner_ind ] = ransac_est_homography(
+[~, ~, inlier_ind ] = ...
+    ransac_tps(p1(1,:), p1(2,:), p2(1,:), p2(2,:), 7);
+% [~, inlier_ind ] = ...
+%     ransac_homography(p1(1,:), p1(2,:), p2(1,:), p2(2,:), 7);
+line([p1(1,inlier_ind); p2(1,inlier_ind) + o], ...
+     [p1(2,inlier_ind); p2(2,inlier_ind)], 'Color', 'r')
 
 if nargout > 0, varargout{1} = h; end
 
