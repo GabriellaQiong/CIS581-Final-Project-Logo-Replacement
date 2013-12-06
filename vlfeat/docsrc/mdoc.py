@@ -16,7 +16,6 @@ from wikidoc import wikidoc
 from formatter import Formatter
 from optparse import OptionParser
 
-
 excludeRegexList = []
 format           = 'html'
 verb             = 0
@@ -51,6 +50,20 @@ parser.add_option(
     action  = "store_true",
     help    = "print debug information")
 
+parser.add_option(
+    "-t", "--helptoc",
+    dest    = "helptoc",
+    default = False,
+    action  = "store_true",
+    help    = "create helptoc.xml")
+
+parser.add_option(
+    "", "--helptoc-toolbox-name",
+    dest  = "helptoc_toolbox_name",
+    default = "Example",
+    action  = "store",
+    type = "string",
+    help    = "helptoc.xml: Toolbox Name")
 
 # --------------------------------------------------------------------
 def runcmd(cmd):
@@ -76,10 +89,10 @@ class MFile:
     def __init__(self, basedir, dirname, name):
         funcname = os.path.splitext(name)[0]
 
-        self.funcname = funcname.upper()
+        self.funcname = funcname #.upper()
         self.path     = os.path.join(basedir, dirname, name)
-        self.mdocname = os.path.join(dirname, funcname).replace(os.path.sep, '_')
-        self.webname  = os.path.join(dirname, funcname).replace(os.path.sep, '.')
+        self.mdocname = funcname.replace(os.path.sep, '_')
+        self.webname  = funcname.replace(os.path.sep, '.')
         self.htmlname = self.mdocname + '.html'
         self.wikiname = 'MDoc_' + (os.path.join(dirname, funcname)
                                    .upper().replace(os.path.sep, '_'))
@@ -151,13 +164,19 @@ class Node:
                     page += " %s" % (m.brief)
                     page += "</li>"
                 page += "</ul>\n"
-        else:
+        elif format == 'wiki':
             if len(self.mfiles) > 0:
                 if depth > 1:
                     page += "=== %s ===\n" % (self.dirname.upper())
                 for m in self.mfiles:
                     page += "* [[%s|%s]]" % (m.getRef(format), m.funcname)
                     page += " %s\n" % (m.brief)
+        elif format == 'helptoc':
+            for m in self.mfiles:
+                page += "<tocitem target='%s'>%s</tocitem>\n" % (m.getRef('html'),
+                                                                 m.funcname)
+        else:
+            assert False
         for n in self.children:
             page += n.toIndexPage(format, depth+1)
         return page
@@ -295,7 +314,7 @@ def breadCrumb(m):
 # --------------------------------------------------------------------
     breadcrumb = "<ul class='breadcrumb'>"
     if format == 'web':
-        breadcrumb += "<li><a href='%pathto:mdoc;'>Index</a></li>"
+        breadcrumb += "<li><a href='%pathto:matlab;'>Index</a></li>"
     else:
         breadcrumb += "<li><a href='index.html'>Index</a></li>"
     if m.prev: breadcrumb += "<li><a href='%s'>Prev</a></li>" % m.prev.getRef(format)
@@ -317,6 +336,7 @@ if __name__ == '__main__':
 
     if options.verb: verb = 1
     format = options.format
+    helptoc = options.helptoc
 
     print options.excludeList
     for ex in options.excludeList:
@@ -358,7 +378,7 @@ if __name__ == '__main__':
                 prev.next = m
                 m.prev = prev
             prev = m
-            func = m.funcname
+            func = m.funcname.upper()
             mfiles[func] = m
             linkdict[func] = m.getRef(format)
     if verb:
@@ -430,7 +450,6 @@ if __name__ == '__main__':
         page = "== Documentation ==\n"
         page += toolbox.toIndexPage('wiki')
 
-
     f = open(os.path.join(docdir, pagename), 'w')
     f.write(page)
     f.close()
@@ -438,6 +457,26 @@ if __name__ == '__main__':
     if format == 'web':
         f = open(os.path.join(docdir, "mdoc.xml"), 'w')
         f.write("<group>"+toolbox.toIndexXML()+"</group>\n")
+        f.close()
+
+    # ----------------------------------------------------------------
+    #                                                 Make helptoc.xml
+    # ----------------------------------------------------------------
+
+    if helptoc:
+        page = """<?xml version='1.0' encoding="utf-8"?>
+<toc version="2.0">
+    <tocitem target="../index.html">%s
+        <tocitem target="%s" image="HelpIcon.FUNCTION">Functions
+""" % (options.helptoc_toolbox_name, pagename)
+        page += toolbox.toIndexPage('helptoc')
+        page += """
+   </tocitem>
+ </tocitem>
+</toc>
+"""
+        f = open(os.path.join(docdir, "helptoc.xml"), 'w')
+        f.write(page)
         f.close()
 
     # ----------------------------------------------------------------

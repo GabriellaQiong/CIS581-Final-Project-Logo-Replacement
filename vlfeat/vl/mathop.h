@@ -1,6 +1,6 @@
 /** @file mathop.h
  ** @brief Math operations
- ** @author Andrea Vedaldi
+ ** @author Andrea Vedaldi, David Novotny
  **/
 
 /*
@@ -16,6 +16,10 @@ the terms of the BSD license (see the COPYING file).
 
 #include "generic.h"
 #include <math.h>
+#include <float.h>
+
+/** @brief Euler constant*/
+#define VL_E 2.718281828459045
 
 /** @brief Logarithm of 2 (math constant)*/
 #define VL_LOG_OF_2 0.693147180559945
@@ -249,6 +253,11 @@ vl_abs_d (double x)
 #endif
 }
 
+/** @brief Base-2 logaritghm
+ ** @param x argument.
+ ** @return @c log(x).
+ **/
+
 VL_INLINE double
 vl_log2_d (double x)
 {
@@ -261,6 +270,7 @@ vl_log2_d (double x)
 #endif
 }
 
+/** @copydoc vl_log2_d */
 VL_INLINE float
 vl_log2_f (float x)
 {
@@ -270,6 +280,90 @@ vl_log2_f (float x)
   return logf(x) / 0.6931472F ;
 #else
   return log2(x) ;
+#endif
+}
+
+/** @brief Square root.
+ ** @param x argument.
+ ** @return @c sqrt(x).
+ **/
+
+VL_INLINE double
+vl_sqrt_d (double x)
+{
+#ifdef VL_COMPILER_GNUC
+  return __builtin_sqrt(x) ;
+#else
+  return sqrt(x) ;
+#endif
+}
+
+/** @copydoc vl_sqrt_d */
+VL_INLINE float
+vl_sqrt_f (float x)
+{
+#ifdef VL_COMPILER_GNUC
+  return __builtin_sqrtf(x) ;
+#else
+  return sqrtf(x) ;
+#endif
+}
+
+/** @brief Check whether a floating point value is NaN
+ ** @param x argument.
+ ** @return true if @a x is NaN.
+ **/
+VL_INLINE vl_bool
+vl_is_nan_f (float x)
+{
+#ifdef VL_COMPILER_GNUC
+  return __builtin_isnan (x) ;
+#elif VL_COMPILER_MSC
+  return _isnan(x) ;
+#else
+  return isnan(x) ;
+#endif
+}
+
+/** @copydoc vl_is_nan_f */
+VL_INLINE vl_bool
+vl_is_nan_d (double x)
+{
+#ifdef VL_COMPILER_GNUC
+  return __builtin_isnan (x) ;
+#elif VL_COMPILER_MSC
+  return _isnan(x) ;
+#else
+  return isnan(x) ;
+#endif
+}
+
+/** @brief Check whether a floating point value is infinity
+ ** @param x argument.
+ ** @return true if @a x is infinity.
+ **/
+VL_INLINE vl_bool
+vl_is_inf_f (float x)
+{
+#ifdef VL_COMPILER_GNUC
+  return __builtin_isinf (x) ;
+#elif VL_COMPILER_MSC
+  return ! _finite(x) ;
+#else
+  return isinf(x) ;
+#endif
+}
+
+/** @copydoc vl_is_inf_f */
+VL_INLINE vl_bool
+vl_is_inf_d (double x)
+{
+#ifdef VL_COMPILER_GNUC
+  return __builtin_isinf (x) ;
+#elif VL_COMPILER_MSC
+  return ! _finite(x) ;
+#else
+  return isinf(x) ;
 #endif
 }
 
@@ -338,7 +432,7 @@ vl_fast_atan2_d (double y, double x)
   double angle, r ;
   double const c3 = 0.1821 ;
   double const c1 = 0.9675 ;
-  double abs_y    = vl_abs_d (y) + VL_EPSILON_D ;
+  double abs_y = vl_abs_d (y) + VL_EPSILON_D ;
 
   if (x >= 0) {
     r = (x - abs_y) / (x + abs_y) ;
@@ -554,6 +648,16 @@ typedef float (*VlFloatVectorComparisonFunction)(vl_size dimension, float const 
  **/
 typedef double (*VlDoubleVectorComparisonFunction)(vl_size dimension, double const * X, double const * Y) ;
 
+/** @typedef VlFloatVector3ComparisonFunction
+ ** @brief Pointer to a function to compare 3 vectors of doubles
+ **/
+typedef float (*VlFloatVector3ComparisonFunction)(vl_size dimension, float const * X, float const * Y, float const * Z) ;
+
+/** @typedef VlDoubleVector3ComparisonFunction
+ ** @brief Pointer to a function to compare 3 vectors of doubles
+ **/
+typedef double (*VlDoubleVector3ComparisonFunction)(vl_size dimension, double const * X, double const * Y, double const * Z) ;
+
 /** @brief Vector comparison types */
 enum _VlVectorComparisonType {
   VlDistanceL1,        /**< l1 distance (squared intersection metric) */
@@ -561,6 +665,7 @@ enum _VlVectorComparisonType {
   VlDistanceChi2,      /**< squared Chi2 distance */
   VlDistanceHellinger, /**< squared Hellinger's distance */
   VlDistanceJS,        /**< squared Jensen-Shannon distance */
+  VlDistanceMahalanobis,     /**< squared mahalanobis distance */
   VlKernelL1,          /**< intersection kernel */
   VlKernelL2,          /**< l2 kernel */
   VlKernelChi2,        /**< Chi2 kernel */
@@ -583,6 +688,7 @@ vl_get_vector_comparison_type_name (int type)
     case VlDistanceL1   : return "l1" ;
     case VlDistanceL2   : return "l2" ;
     case VlDistanceChi2 : return "chi2" ;
+    case VlDistanceMahalanobis  : return "mahalanobis" ;
     case VlKernelL1     : return "kl1" ;
     case VlKernelL2     : return "kl2" ;
     case VlKernelChi2   : return "kchi2" ;
@@ -596,6 +702,13 @@ vl_get_vector_comparison_function_f (VlVectorComparisonType type) ;
 VL_EXPORT VlDoubleVectorComparisonFunction
 vl_get_vector_comparison_function_d (VlVectorComparisonType type) ;
 
+VL_EXPORT VlFloatVector3ComparisonFunction
+vl_get_vector_3_comparison_function_f (VlVectorComparisonType type) ;
+
+VL_EXPORT VlDoubleVector3ComparisonFunction
+vl_get_vector_3_comparison_function_d (VlVectorComparisonType type) ;
+
+
 VL_EXPORT void
 vl_eval_vector_comparison_on_all_pairs_f (float * result, vl_size dimension,
                                           float const * X, vl_size numDataX,
@@ -607,6 +720,34 @@ vl_eval_vector_comparison_on_all_pairs_d (double * result, vl_size dimension,
                                           double const * X, vl_size numDataX,
                                           double const * Y, vl_size numDataY,
                                           VlDoubleVectorComparisonFunction function) ;
+
+/* ---------------------------------------------------------------- */
+/*                                               Numerical analysis */
+/* ---------------------------------------------------------------- */
+
+VL_EXPORT void
+vl_svd2 (double* S, double *U, double *V, double const *M) ;
+
+VL_EXPORT void
+vl_lapack_dlasv2 (double *smin,
+                  double *smax,
+                  double *sv,
+                  double *cv,
+                  double *su,
+                  double *cu,
+                  double f,
+                  double g,
+                  double h) ;
+
+
+VL_EXPORT int
+vl_solve_linear_system_3 (double * x, double const * A, double const *b) ;
+
+VL_EXPORT int
+vl_solve_linear_system_2 (double * x, double const * A, double const *b) ;
+
+VL_EXPORT int
+vl_gaussian_elimination (double * A, vl_size numRows, vl_size numColumns) ;
 
 /* VL_MATHOP_H */
 #endif

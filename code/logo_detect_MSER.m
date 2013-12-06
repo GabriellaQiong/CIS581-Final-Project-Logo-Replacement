@@ -1,5 +1,5 @@
 function [matchedPts1, matchedPts2, indexPairs] = logo_detect_MSER(imRef, imCmp,  verbose, surf)
-% FEAT_DESC extracts feature descriptor
+% LOGO_DETECT_MSER extracts feature descriptor
 
 % INPUT
 % imRef, imCmp = uint8 HxW array with values in the range 0-255. 

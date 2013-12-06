@@ -73,7 +73,7 @@ struct option const longopts [] = {
   { "help",            no_argument,            0,          'h'              },
   { "octaves",         required_argument,      0,          'O'              },
   { "levels",          required_argument,      0,          'S'              },
-  { "output",          optional_argument,      0,          'o'              },
+  { "output",          required_argument,      0,          'o'              },
   { "meta",            optional_argument,      0,          opt_meta         },
   { "frames",          optional_argument,      0,          opt_frames       },
   { "descriptors",     optional_argument,      0,          opt_descriptors  },
@@ -485,7 +485,7 @@ main(int argc, char **argv)
     }
 
     if (verbose)
-      printf ("sift: image is %d by %d pixels\n",
+      printf ("sift: image is %" VL_FMT_SIZE " by %" VL_FMT_SIZE " pixels\n",
               pim. width,
               pim. height) ;
 

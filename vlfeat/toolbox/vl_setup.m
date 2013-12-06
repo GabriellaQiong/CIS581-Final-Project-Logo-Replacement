@@ -1,4 +1,3 @@
-
 function path = vl_setup(varargin)
 % VL_SETUP Add VLFeat Toolbox to the path
 %   PATH = VL_SETUP() adds the VLFeat Toolbox to MATLAB path and
@@ -46,14 +45,6 @@ for ai=1:length(varargin)
   end
 end
 
-if exist('octave_config_info')
-  bindir = 'octave' ;
-else
-  bindir = mexext ;
-  if strcmp(bindir, 'dll'), bindir = 'mexw32' ; end
-end
-bindir = fullfile('mex',bindir) ;
-
 % Do not use vl_root() to avoid conflicts with other VLFeat
 % installations.
 
@@ -73,7 +64,19 @@ addpath(fullfile(root,'toolbox','quickshift')) ;
 addpath(fullfile(root,'toolbox','sift'      )) ;
 addpath(fullfile(root,'toolbox','special'   )) ;
 addpath(fullfile(root,'toolbox','slic'      )) ;
-addpath(fullfile(root,'toolbox',bindir      )) ;
+addpath(fullfile(root,'toolbox','gmm'       )) ;
+addpath(fullfile(root,'toolbox','vlad'      )) ;
+addpath(fullfile(root,'toolbox','fisher'    )) ;
+
+if vl_isoctave()
+  addpath(genpath(fullfile(root,'toolbox','mex','octave'))) ;
+  warning('off', 'Octave:possible-matlab-short-circuit-operator') ;
+  pkg load image ;
+else
+  bindir = mexext ;
+  if strcmp(bindir, 'dll'), bindir = 'mexw32' ; end
+  addpath(fullfile(root,'toolbox','mex',bindir)) ;
+end
 
 if noprefix
   addpath(fullfile(root,'toolbox','noprefix')) ;

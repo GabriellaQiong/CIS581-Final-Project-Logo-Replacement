@@ -4,7 +4,7 @@ randn('state',0) ;
 rand('state',0) ;
 
 % read a test image
-I = imread(fullfile(vl_root,'data','a.jpg')) ;
+I = imread(fullfile(vl_root,'data','roofs1.jpg')) ;
 I = single(vl_imdown(rgb2gray(I))) ;
 
 % --------------------------------------------------------------------
@@ -67,7 +67,7 @@ xlabel('binSize parameter') ;
 grid on ;
 axis square ;
 
-figure(2) ; title('Speedup on regular SIFT') ;
+figure(2) ; clf ; title('Speedup on regular SIFT') ;
 plot(binSizeRange, ...
      [elaps_sift ./ elaps_dsift ; ...
       elaps_sift ./ elaps_dsift_fast ; ...

@@ -12,17 +12,9 @@ if nargin < 4, edge_thresh = 10; end
 if peak_thresh < 0 || isempty(peak_thresh), peak_thresh = 0; end
 if edge_thresh < 0 || isempty(edge_thresh), edge_thresh = 10; end
 
-% make single
-im1 = im2single(im1);
-im2 = im2single(im2);
-
-% make gray
-if size(im1,3) > 1, im1g = rgb2gray(im1) ; else im1g = im1 ; end
-if size(im2,3) > 1, im2g = rgb2gray(im2) ; else im2g = im2 ; end
-
 % vl_sift and vl_ubcmatch
-[f1, d1] = vl_sift(im1g, 'PeakThresh', peak_thresh, 'EdgeThresh', edge_thresh) ;
-[f2, d2] = vl_sift(im2g, 'PeakThresh', peak_thresh, 'EdgeThresh', edge_thresh) ;
+[f1, d1] = my_sift(im1, 'peak_thresh', peak_thresh, 'edge_thresh', edge_thresh, 'visual', true) ;
+[f2, d2] = my_sift(im2, 'peak_thresh', peak_thresh, 'edge_thresh', edge_thresh, 'visual', true) ;
 [matches, scores] = vl_ubcmatch(d1, d2);
 
 % sort scores in descending order

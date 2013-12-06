@@ -78,16 +78,22 @@
 # components, located in make/*.mak. Please check out the
 # corresponding files in order to adjust parameters.
 
-# AUTORIGHTS
+# Copyright (C) 2007-13 Andrea Vedaldi and Brian Fulkerson.
+# All rights reserved.
+#
+# This file is part of the VLFeat library and is made available under
+# the terms of the BSD license (see the COPYING file).
 
 SHELL = /bin/bash
 
 .PHONY : all
 all:
 
-# Feature selection
-DISABLE_SSE2=no
-DISABLE_THREADS=no
+# Select which features to disable
+# DISABLE_SSE2=yes
+# DISABLE_AVX=yes
+# DISABLE_THREADS=yes
+# DISABLE_OPENMP=yes
 
 # --------------------------------------------------------------------
 #                                                       Error Messages
@@ -136,17 +142,19 @@ endif
 # --------------------------------------------------------------------
 
 VLDIR ?= .
-CC ?= cc
 LIBTOOL ?= libtool
 
 STD_CLFAGS = $(CFLAGS)
 STD_CFLAGS += -std=c99
 STD_CFLAGS += -Wall -Wextra
+
 STD_CFLAGS += -Wno-unused-function -Wno-long-long -Wno-variadic-macros
-STD_CFLAGS += $(ifeq ($(DISABLE_THREADS),yes),-DVL_DISABLE_THREADS)
-STD_CFLAGS += $(ifeq ($(DISABLE_SSE2),yes),-DVL_DISABLE_SSE2)
+STD_CFLAGS += $(if $(DISABLE_THREADS), -DVL_DISABLE_THREADS)
+STD_CFLAGS += $(if $(DISABLE_SSE2), -DVL_DISABLE_SSE2)
+STD_CFLAGS += $(if $(DISABLE_OPENMP), -DVL_DISABLE_OPENMP)
 STD_CFLAGS += $(if $(DEBUG), -DDEBUG -O0 -g, -DNDEBUG -O3)
-STD_CFLAGS += $(if $(PROFILE), -g,)
+STD_CFLAGS += $(if $(DISABLE_AVX), -DVL_DISABLE_AVX)
+STD_CFLAGS += $(if $(PROFILE), -g)
 
 STD_LDFLAGS = $(LDFLAGS)
 
@@ -154,29 +162,41 @@ STD_LDFLAGS = $(LDFLAGS)
 
 # Mac OS X Intel 32
 ifeq ($(ARCH),maci)
-SDKROOT ?= /Developer/SDKs/MacOSX10.7.sdk
+#SDKROOT ?= $(shell xcode-select -print-path)/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.7.sdk
+SDKROOT ?= $(shell xcodebuild -version -sdk macosx | sed -n '/^Path\:/p' | sed 's/^Path: //')
 MACOSX_DEPLOYMENT_TARGET ?= 10.4
 STD_CFLAGS += -m32 -isysroot $(SDKROOT) -mmacosx-version-min=$(MACOSX_DEPLOYMENT_TARGET)
-STD_LDFLAGS += -mmacosx-version-min=$(MACOSX_DEPLOYMENT_TARGET)
+STD_LDFLAGS += -Wl,-syslibroot,$(SDKROOT) -mmacosx-version-min=$(MACOSX_DEPLOYMENT_TARGET)
+DISABLE_AVX ?= yes
+CC = gcc
 endif
 
 # Mac OS X Intel 64
 ifeq ($(ARCH),maci64)
-SDKROOT ?= /Developer/SDKs/MacOSX10.7.sdk
+#SDKROOT ?= $(shell xcode-select -print-path)/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.7.sdk
+SDKROOT ?= $(shell xcodebuild -version -sdk macosx | sed -n '/^Path\:/p' | sed 's/^Path: //')
 MACOSX_DEPLOYMENT_TARGET ?= 10.4
 STD_CFLAGS += -m64 -isysroot $(SDKROOT) -mmacosx-version-min=$(MACOSX_DEPLOYMENT_TARGET)
-STD_LDFLAGS += -mmacosx-version-min=$(MACOSX_DEPLOYMENT_TARGET)
+STD_LDFLAGS += -Wl,-syslibroot,$(SDKROOT) -mmacosx-version-min=$(MACOSX_DEPLOYMENT_TARGET)
+DISABLE_AVX ?= yes # GCC 4.2 need for OpenMP does not support -mavx
+CC = gcc
 endif
 
 # Linux-32
 ifeq ($(ARCH),glnx86)
-STD_CFLAGS += -march=i686
-STD_LDFLAGS += -Wl,--rpath,\$$ORIGIN/ -Wl,--as-needed
+# Target compatibility with GLIBC 2.3.4
+# 1) _GNU_SOURCE avoids using isoc99_fscanf, limiting binray portability to recent GLIBC.
+# 2) -fno-stack-protector avoids using a feature requiring GLBIC 2.4
+STD_CFLAGS += -m32 -D_GNU_SOURCE -fno-stack-protector
+STD_LDFLAGS += -m32 -Wl,--rpath,\$$ORIGIN/ -Wl,--as-needed -lpthread -lm
+CC ?= gcc
 endif
 
 # Linux-64
 ifeq ($(ARCH),glnxa64)
-STD_LDFLAGS += -Wl,--rpath,\$$ORIGIN/ -Wl,--as-needed
+STD_CFLAGS += -D_GNU_SOURCE -fno-stack-protector
+STD_LDFLAGS += -Wl,--rpath,\$$ORIGIN/ -Wl,--as-needed -lpthread -lm
+CC ?= gcc
 endif
 
 # --------------------------------------------------------------------
@@ -301,6 +321,10 @@ info:
 	$(call echo-var,CC)
 	$(call echo-var,STD_CFLAGS)
 	$(call echo-var,STD_LDFLAGS)
+	$(call echo-var,DISABLE_SSE2)
+	$(call echo-var,DISABLE_AVX)
+	$(call echo-var,DISABLE_THREADS)
+	$(call echo-var,DISABLE_OPENMP)
 	@printf "\nThere are %s lines of code.\n" \
 	`cat $(m_src) $(mex_src) $(dll_src) $(dll_hdr) $(bin_src) | wc -l`
 

@@ -22,30 +22,36 @@ DLL_NAME = vl
 
 DLL_CFLAGS  = $(STD_CFLAGS)
 DLL_CFLAGS += -fvisibility=hidden -fPIC -DVL_BUILD_DLL -pthread
-DLL_CFLAGS += $(call if-like,%_sse2,$*,-msse2)
+DLL_CFLAGS += $(call if-like,%_sse2,$*, $(if $(DISABLE_SSE2),,-msse2))
+DLL_CFLAGS += $(call if-like,%_avx,$*, $(if $(DISABLE_AVX),,-mavx))
+DLL_CFLAGS += $(if $(DISABLE_OPENMP),,-fopenmp)
 
-DLL_LDFLAGS += -lm
+DLL_LDFLAGS += -lm -lpthread
 
 BINDIR = bin/$(ARCH)
 
 # Mac OS X on Intel 32 bit processor
 ifeq ($(ARCH),maci)
 DLL_SUFFIX := dylib
+DLL_LDFLAGS += -m32
 endif
 
 # Mac OS X on Intel 64 bit processor
 ifeq ($(ARCH),maci64)
 DLL_SUFFIX := dylib
+DLL_LDFLAGS += -m64
 endif
 
 # Linux-32
 ifeq ($(ARCH),glnx86)
 DLL_SUFFIX := so
+DLL_LDFLAGS += -m32
 endif
 
 # Linux-64
 ifeq ($(ARCH),glnxa64)
 DLL_SUFFIX := so
+DLL_LDFLAGS += -m64
 endif
 
 # --------------------------------------------------------------------
@@ -89,19 +95,26 @@ $(BINDIR)/objs/%.d : $(VLDIR)/vl/%.c $(dll-dir)
 	       "$(<)" -MF "$(@)"
 
 $(BINDIR)/lib$(DLL_NAME).dylib : $(dll_obj)
-	$(call C,LIBTOOL) -dynamic                                   \
+	$(call C,CC) -m64                                            \
+                    -dynamiclib                                      \
+                    -undefined suppress                              \
                     -flat_namespace                                  \
                     -install_name @loader_path/lib$(DLL_NAME).dylib  \
 	            -compatibility_version $(VER)                    \
                     -current_version $(VER)                          \
-                    -syslibroot $(SDKROOT)                           \
-		    -macosx_version_min $(MACOSX_DEPLOYMENT_TARGET)  \
-	            -o $@ -undefined suppress $^                     \
-	            $(DLL_LDFLAGS)
-
+                    -isysroot $(SDKROOT)                             \
+		    -mmacosx_version_min=$(MACOSX_DEPLOYMENT_TARGET) \
+	            $(DLL_LDFLAGS)                                   \
+	            $(if $(DISABLE_OPENMP),,-fopenmp)                \
+                    $^                                               \
+                    -o $@
 
 $(BINDIR)/lib$(DLL_NAME).so : $(dll_obj)
-	$(call C,CC) $(DLL_CFLAGS) -shared $(^) -o $(@) $(DLL_LDFLAGS)
+	$(call C,CC) -shared    \
+	    $(^)                \
+	    $(DLL_LDFLAGS)	\
+	    $(if $(DISABLE_OPENMP),,-fopenmp) \
+	    -o $(@)
 
 dll-clean:
 	rm -f $(dll_dep) $(dll_obj)

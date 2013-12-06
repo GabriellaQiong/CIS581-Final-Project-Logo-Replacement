@@ -1,7 +1,7 @@
 function [tps] = est_tps(x, y, target)
 % [tps] = EST_TPS(x, y, target)
 % x,y   - position in source image
-% target- x or y in target image
+% target - x or y in target image
 % tps   - [a1; ax; ay; aw];
 
 n = size(x,1);

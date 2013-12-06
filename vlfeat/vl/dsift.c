@@ -24,18 +24,13 @@ the terms of the BSD license (see the COPYING file).
 @page dsift Dense Scale Invariant Feature Transform (DSIFT)
 @author Andrea Vedaldi
 @author Brian Fulkerson
+@tableofcontents
 <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  -->
 
 @ref dsift.h implements a dense version of @ref sift.h "SIFT". This is
 an object that can quickly compute descriptors for densely sampled
 keypoints with identical size and orientation. It can be reused for
 multiple images of the same size.
-
-- @ref dsift-intro
-- @ref dsift-usage
-- @ref dsift-tech
-  - @ref dsift-tech-descriptor-dense
-  - @ref dsift-tech-sampling
 
 <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  -->
 @section dsift-intro Overview
@@ -713,7 +708,7 @@ void vl_dsift_process (VlDsiftFilter* self, float const* im)
 
       /* quantize angle */
       nt = vl_mod_2pi_f (angle) * (self->geom.numBinT / (2*VL_PI)) ;
-      bint = vl_floor_f (nt) ;
+      bint = (int) vl_floor_f (nt) ;
       rbint = nt - bint ;
 
       /* write it back */

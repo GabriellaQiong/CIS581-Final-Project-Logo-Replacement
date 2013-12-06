@@ -1,6 +1,9 @@
 function [X, Y] = apply_tps(x, y, tps_x, tps_y, x_c, y_c)
 % [X, Y] = APPLY_TPS(x, y, tps_x, tps_y, x_c, y_c)
-% x,y   - position 
+% x,y   - source position 
+% X,Y   - destination position
+% tps_x,y - tps coefficients
+% x_c,y_c - control points
 % get coefficients
 a1_x = tps_x(1);    a1_y = tps_y(1);
 ax_x = tps_x(2);    ax_y = tps_y(2);

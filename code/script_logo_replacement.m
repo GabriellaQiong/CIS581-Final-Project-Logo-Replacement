@@ -20,14 +20,19 @@ outputDir = fullfile(scriptDir, '/results');
 if ~exist(outputDir, 'dir')
     mkdir(outputDir);
 end
+addpath ./utils
 
 % Load Images
 if ~exist('Iall', 'var')
     [Iall, Iref, Inew] = load_images('../images/sample1/');
 end
 
+% Generate codebook of HOG descriptor of reference image
+codebook = generate_codebook(Iref);
+
 % Logo Replacement
 for imIdx = 1 : numel(Iall)
    fprintf('Processing image %d ... \n', imIdx);
-   [matchedPts1, matchedPts2, indexPairs] = logo_detect_MSER(Iref, Iall{imIdx}, verbose);
+   [matchedPts1, matchedPts2, indexPairs] = logo_detect_HoG(Iref, Iall{imIdx}, verbose);
+%    [matchedPts1, matchedPts2, indexPairs] = logo_detect_MSER(Iref, Iall{imIdx}, verbose);
 end

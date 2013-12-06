@@ -17,6 +17,7 @@ the terms of the BSD license (see the COPYING file).
 #include"mex.h"
 #include<vl/generic.h>
 #include<vl/array.h>
+#include<vl/stringop.h>
 #include<ctype.h>
 #include<string.h>
 #include<stdio.h>
@@ -133,7 +134,7 @@ mxSetDimensionsOctaveWorkaround(mxArray * array, const mwSize  *dims, int ndims)
    array can be of any numeric or other type. The elements of such a
    MATLAB array are stored as a plain C array with a number of
    elements equal to the number of elements in the array (obtained
-   with @c mxGetNumberOfElements). Use ::vlmxIsVector to test if an
+   with @c mxGetNumberOfElements). Use ::vlmxIsVector to test whether an
    array is a vector.
 
  - <b>Matrix array</b> is a non-sparse array for which all dimensions
@@ -366,22 +367,14 @@ vlmxIsVector (mxArray const * array, vl_index numElements)
     return VL_FALSE ;
   }
 
-  /* ok if empty */
-  if (mxGetNumberOfElements (array) == 0) {
-    return VL_TRUE ;
+  /* check that all but at most one dimension is singleton */
+  for (di = 0 ;  di < numDimensions ; ++ di) {
+    if (dimensions[di] != 1) break ;
   }
-
-  /* find first non-singleton dimension */
-  for (di = 0 ; (dimensions[di] == 1) && di < numDimensions ; ++ di) ;
-
-  /* skip it */
-  if (di < numDimensions) ++ di ;
-
-  /* find next non-singleton dimension */
-  for (; (dimensions[di] == 1) && di < numDimensions ; ++ di) ;
-
-  /* if none found, then ok */
-  return di == numDimensions ;
+  for (++ di ; di < numDimensions ; ++di) {
+    if (dimensions[di] != 1) return VL_FALSE ;
+  }
+  return VL_TRUE ;
 }
 
 /** ------------------------------------------------------------------
@@ -537,14 +530,14 @@ vlmxIsPlainMatrix (mxArray const * array, vl_index M, vl_index N)
 static int
 vlmxIsString (const mxArray* array, vl_index length)
 {
-  int M = mxGetM (array) ;
-  int N = mxGetN (array) ;
+  mwSize M = (mwSize) mxGetM (array) ;
+  mwSize N = (mwSize) mxGetN (array) ;
 
   return
     mxIsChar(array) &&
     mxGetNumberOfDimensions(array) == 2 &&
     (M == 1 || (M == 0 && N == 0)) &&
-    (length < 0 || N == length) ;
+    (length < 0 || (signed)N == length) ;
 }
 
 
@@ -575,7 +568,7 @@ vlmxCreateArrayFromVlArray (VlArray const * x)
 {
   mwSize dimensions [VL_ARRAY_MAX_NUM_DIMENSIONS] ;
   mxArray * array = NULL ;
-  mxClassID classId = 0 ;
+  mxClassID classId = (mxClassID)0 ;
   vl_uindex d ;
   vl_size numElements = vl_array_get_num_elements(x) ;
   vl_size numDimensions  = vl_array_get_num_dimensions(x) ;
@@ -584,7 +577,7 @@ vlmxCreateArrayFromVlArray (VlArray const * x)
   vl_size typeSize = vl_get_type_size(type) ;
 
   for (d = 0 ; d < numDimensions ; ++d) {
-    dimensions[d] = xdimensions[d] ;
+    dimensions[d] = (mwSize) xdimensions[d] ;
   }
 
   switch (type) {
@@ -654,28 +647,73 @@ vlmxEnvelopeArrayInVlArray (VlArray * v, mxArray * x)
 
 /** ------------------------------------------------------------------
  ** @brief Case insensitive string comparison
- **
  ** @param s1 first string.
  ** @param s2 second string.
+ ** @return comparison result.
  **
- ** @return 0 if the strings are equal, >0 if the first string is
- ** greater (in lexicographical order) and <0 otherwise.
+ ** The comparison result is equal to 0 if the strings are equal, >0
+ ** if the first string is greater than the second (in lexicographical
+ ** order), and <0 otherwise.
  **/
 
 static int
-uStrICmp(const char *s1, const char *s2)
+vlmxCompareStringsI(const char *s1, const char *s2)
 {
-  while (tolower((unsigned char)*s1) ==
-         tolower((unsigned char)*s2))
+  /*
+   Since tolower has an int argument, characters must be unsigned
+   otherwise will be sign-extended when converted to int.
+   */
+  while (tolower((unsigned char)*s1) == tolower((unsigned char)*s2))
   {
-    if (*s1 == 0)
-      return 0;
+    if (*s1 == 0) return 0 ; /* implies *s2 == 0 */
     s1++;
     s2++;
   }
-  return
-    (int)tolower((unsigned char)*s1) -
-    (int)tolower((unsigned char)*s2) ;
+  return tolower((unsigned char)*s1) - tolower((unsigned char)*s2) ;
+}
+
+/** ------------------------------------------------------------------
+ ** @brief Case insensitive string comparison with array
+ ** @param array first string (as a MATLAB array).
+ ** @param string second string.
+ ** @return comparison result.
+ **
+ ** The comparison result is equal to 0 if the strings are equal, >0
+ ** if the first string is greater than the second (in lexicographical
+ ** order), and <0 otherwise.
+ **/
+
+static int
+vlmxCompareToStringI(mxArray const * array, char const  * string)
+{
+  mxChar const * s1 = (mxChar const *) mxGetData(array) ;
+  char unsigned const * s2 = (char unsigned const*) string ;
+  vl_size n = mxGetNumberOfElements(array) ;
+
+  /*
+   Since tolower has an int argument, characters must be unsigned
+   otherwise will be sign-extended when converted to int.
+   */
+  while (n && tolower((unsigned)*s1) == tolower(*s2)) {
+    if (*s2 == 0) return 1 ; /* s2 terminated on 0, but s1 did not terminate yet */
+    s1 ++ ;
+    s2 ++ ;
+    n -- ;
+  }
+  return tolower(n ? (unsigned)*s1 : 0) - tolower(*s2) ;
+}
+
+/** ------------------------------------------------------------------
+ ** @brief Case insensitive string equality test with array
+ ** @param array first string (as a MATLAB array).
+ ** @param string second string.
+ ** @return true if the strings are equal.
+ **/
+
+static int
+vlmxIsEqualToStringI(mxArray const * array, char const  * string)
+{
+  return vlmxCompareToStringI(array, string) == 0 ;
 }
 
 /* ---------------------------------------------------------------- */
@@ -730,7 +768,7 @@ vlmxNextOption (mxArray const *args[], int nargs,
                 mxArray const **optarg)
 {
   char name [1024] ;
-  int opt = -1, i, len ;
+  int opt = -1, i;
 
   if (*next >= nargs) {
     return opt ;
@@ -744,8 +782,6 @@ vlmxNextOption (mxArray const *args[], int nargs,
   }
 
   /* retrieve option name */
-  len = mxGetNumberOfElements (args [*next]) ;
-
   if (mxGetString (args [*next], name, sizeof(name))) {
     vlmxError (vlmxErrInvalidOption,
                "The option name is too long (argument number %d)",
@@ -757,7 +793,7 @@ vlmxNextOption (mxArray const *args[], int nargs,
 
   /* now lookup the string in the option table */
   for (i = 0 ; options[i].name != 0 ; ++i) {
-    if (uStrICmp(name, options[i].name) == 0) {
+    if (vlmxCompareStringsI(name, options[i].name) == 0) {
       opt = options[i].val ;
       break ;
     }
@@ -783,6 +819,37 @@ vlmxNextOption (mxArray const *args[], int nargs,
   if (optarg) *optarg = args [*next] ;
   ++ (*next) ;
   return opt ;
+}
+
+/** @brief Get an emumeration member by name
+ ** @param enumeration the enumeration to decode.
+ ** @param name_array member name as a MATLAB string array.
+ ** @param caseInsensitive if @c true match the string case-insensitive.
+ ** @return the corresponding enumeration member, or @c NULL if any.
+ **/
+
+static VlEnumerator *
+vlmxDecodeEnumeration (mxArray const *name_array,
+                       VlEnumerator const *enumeration,
+                       vl_bool caseInsensitive)
+{
+  char name [1024] ;
+
+  /* check the array is a string */
+  if (! vlmxIsString (name_array, -1)) {
+    vlmxError (vlmxErrInvalidArgument, "The array is not a string.") ;
+  }
+
+  /* retrieve option name */
+  if (mxGetString (name_array, name, sizeof(name))) {
+    vlmxError (vlmxErrInvalidArgument, "The string array is too long.") ;
+  }
+
+  if (caseInsensitive) {
+    return vl_enumeration_get_casei(enumeration, name) ;
+  } else {
+    return vl_enumeration_get(enumeration, name) ;
+  }
 }
 
 /* MEXUTILS_H */
