@@ -41,19 +41,22 @@ Iout  = cell(numel(Iall), 1);
 % codebook = generate_codebook(Iref);
 
 % Logo Replacement
-for imIdx = 1 : 1%numel(Iall)
+for imIdx = 1 : numel(Iall)
     fprintf('Processing image %d ... \n', imIdx);
-    [frames1, frames2, matches] = logo_detect_SIFT(Iref, Iall{imIdx});
+    [frames1, frames2, matches] = logo_detect_SIFT(Iref, Iall{imIdx}, verbose);
     p1 = [frames1(1,matches(1,:)); frames1(2,matches(1,:))];
     p2 = [frames2(1,matches(2,:)); frames2(2,matches(2,:))];
     [tpsX, tpsY, inlierInd, continueFlag] = ransac_tps(p1(1,:), p1(2,:), p2(1,:), p2(2,:), 5);
+%     [H, inlierInd, continueFlag] = ransac_homography(p1(1,:), p1(2,:), p2(1,:), p2(2,:));
+%     [H, inlier_ind] = ransac_tps(p1(1,:), p1(2,:), p2(1,:), p2(2,:), 5);
     if continueFlag
         fprintf('Descriptors are not enough for image %d \n', imIdx);
         continue;
     end
+    
     if verbose
         ransac_plot(Iref, Iall{imIdx}, p1, p2, inlierInd, matches);
     end
-    
-    Iout{imIdx} = logo_replace(Iall{imIdx}, Inew, tpsX, tpsY, p1(:, inlierInd), p2(:, inlierInd), verbose);
+%     
+%     Iout{imIdx} = logo_replace(Iall{imIdx}, Inew, tpsX, tpsY, p1(:, inlierInd), p2(:, inlierInd), verbose);
 end

@@ -1,12 +1,27 @@
-function [H, inlier_ind] = ransac_homography(x1, y1, x2, y2, thresh)
-if nargin < 5, thresh = 5; end
-y1 = y1(:); x1 = x1(:); y2 = y2(:); x2 = x2(:);
-percent_inlier = 0.99; % stop when x% of the points are inlier
-iter = 300; % ransac max iteration
-num_pts = numel(y1);
-ind = 1:num_pts;
+function [H, inlier_ind, continue_flag] = ransac_homography(x1, y1, x2, y2, thresh)
 
-inlier_ind = [];
+% Initialize
+if nargin < 5, thresh = 5; end
+y1 = y1(:); x1 = x1(:); 
+y2 = y2(:); x2 = x2(:);
+num_pts       = numel(y1);
+ind           = 1:num_pts;
+H             = [];
+inlier_ind    = [];
+continue_flag = 0;
+
+% Parameters
+percent_inlier = 0.99;  % stop when x% of the points are inlier
+iter = 300;             % ransac max iteration
+
+
+% Check the num_pts more than 5
+if num_pts < 4
+   warning('The descriptors are not enough for TPS RANSAC, please check : )'); 
+   continue_flag = 1;
+   return;
+end
+
 % RANSAC
 for i = 1:iter
     perm = randperm(num_pts);
