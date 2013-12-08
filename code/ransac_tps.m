@@ -1,13 +1,37 @@
-function [tps_x, tps_y, inlier_ind] = ransac_tps(x1, y1, x2, y2, thresh)
+function [tps_x, tps_y, inlier_ind, continue_flag] = ransac_tps(x1, y1, x2, y2, thresh)
+% RANSAC_TPS() 
+% INPUT
+% x1, y1, x2, y2 ---- 1 x n vector of stored matching points coordinates
+% thresh         ---- threshold for RANSAC comparing with the distance
 
+% OUTPUT
+% tps_x, tps_y   ---- TPS coefficients
+% inlier_ind     ---- inlier indices
+% continue_flag  ---- whether to continue when with insufficient num_pts
+
+% Initialize
 if nargin < 5, thresh = 5; end
-y1 = y1(:); x1 = x1(:); y2 = y2(:); x2 = x2(:);
+y1 = y1(:); x1 = x1(:); 
+y2 = y2(:); x2 = x2(:);
+num_pts       = numel(y1);
+ind           = 1:num_pts;
+tps_x         = [];
+tps_y         = [];
+inlier_ind    = [];
+continue_flag = 0;
+
+% Parameters
 percent_inlier = 0.99;  % stop when x% of the points are inlier
 iter = 300;             % ransac max iteration
-num_pts = numel(y1);
-ind = 1:num_pts;
 
-inlier_ind = [];
+
+% Check the num_pts more than 5
+if num_pts < 5
+   warning('The descriptors are not enough for TPS RANSAC, please check : )'); 
+   continue_flag = 1;
+   return;
+end
+
 % RANSAC
 for i = 1:iter
     perm = randperm(num_pts);

@@ -42,7 +42,16 @@ for i = 1:numFile
         fprintf([fileListing(i).name, '\n'])
     end
 end
-I = I(1:Icount);
+
+% Handle different size of logos
+[rRef, cRef, ~] = size(Iref);
+[rNew, cNew, ~] = size(Inew);
+if rRef < rNew || cRef < cNew
+    Inew = imresize(Inew, [rRef / rNew /1.2, cRef / cNew / 1.2]);
+end
+Inew = padarray(Inew, floor([(rRef-rNew) / 2, (cRef - cNew) / 2]), 'both', 'replicate');
+
+I = I(1 : Icount);
 fprintf('Load %d images. \n', Icount);
 close all
 end
