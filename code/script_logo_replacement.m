@@ -62,7 +62,7 @@ for imIdx = 1 : numel(Iall)
         fig_save(h1, fullfile(outputDir, sprintf('bb_ransac_img%02d', imIdx)), 'png');
     end
     
-    p1New = mapcpt(Iref, Inew, p1, verbose);
+    p1New = mapcpt(Iref, Inew, p1);
     [Iout{imIdx}, h2] = logo_replace(Iall{imIdx}, Inew, tpsX, tpsY, p1New(:, inlierInd), p2(:, inlierInd), verbose);
     fig_save(h2, fullfile(outputDir, sprintf('bb_replace_img%02d', imIdx)), 'png');
 end
