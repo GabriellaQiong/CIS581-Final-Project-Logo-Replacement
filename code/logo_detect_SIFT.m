@@ -13,17 +13,17 @@ I1  = im2gray(im2double(I1));
 I2  = im2gray(im2double(I2));
 
 % Smooth
-I1=imsmooth(I1,.2) ;
-I2=imsmooth(I2,.2) ;
+I1  = imsmooth(I1,.2) ;
+I2  = imsmooth(I2,.2) ;
 
 % Normalize
-I1=I1-min(I1(:)) ;
-I1=I1/max(I1(:)) ;
-I2=I2-min(I2(:)) ;
-I2=I2/max(I2(:)) ;
+I1  = I1-min(I1(:)) ;
+I1  = I1/max(I1(:)) ;
+I2  = I2-min(I2(:)) ;
+I2  = I2/max(I2(:)) ;
 
 % SIFT descriptors
-S=3 ;
+S = 3 ;
 fprintf('Computing frames and descriptors.\n') ;
 [frames1, descr1, ~, dogss1] = sift( I1, 'Verbosity', 0, 'Threshold', ...
                                      0.005, 'NumLevels', S ) ;
@@ -61,15 +61,6 @@ h=plotsiftframe( frames2 ) ; set(h,'LineWidth',2,'Color','g') ;
 h=plotsiftframe( frames2 ) ; set(h,'LineWidth',1,'Color','k') ;
 
 figure(3) ; clf ;
-plotmatches(I1c,I2c,frames1(1:2,:),frames2(1:2,:),matches,...
-  'Stacking','v') ;
+plotmatches(I1c,I2c,frames1(1:2,:),frames2(1:2,:),matches, 'Stacking','v') ;
 drawnow ;
-end
-
-function Ig = im2gray(I)
-if size(I,3) > 1
-    Ig = rgb2gray(I) ; 
-else
-    Ig = I ;
-end
 end

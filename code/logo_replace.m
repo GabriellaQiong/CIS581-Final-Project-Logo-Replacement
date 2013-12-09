@@ -1,4 +1,4 @@
-function Iout = logo_replace(Ides, Inew, tpsX, tpsY, p1In, p2In, verbose)
+function [Iout, h] = logo_replace(Ides, Inew, tpsX, tpsY, p1In, p2In, verbose)
 % TPS_REPLACE replaces the reference logo with the new one
 % INPUT
 % Ides       --- Image with reference logo to be replaced uint8 HxWx3 , 0-255.
@@ -12,20 +12,23 @@ function Iout = logo_replace(Ides, Inew, tpsX, tpsY, p1In, p2In, verbose)
 if nargin < 7
     verbose = false;
 end
-InewG = rgb2gray(Inew);
+InewG = im2gray(Inew);
+p1In  = p1In';
+p2In  = p2In';
+blendFrac = 0;
 
 % Handle the bounds
 [yDes, xDes, ~]    = size(Ides);
 [ySrc, xSrc, ~]    = size(Inew);
-[xBound, yBound]   = apply_tps([1; 1; xSrc; xSrc], [1; ySrc; 1; ySrc], tpsX, tpsY, p1In(1, :), p1In(2, :));
+[xBound, yBound]   = apply_tps([1; 1; xSrc; xSrc], [1; ySrc; 1; ySrc], tpsX, tpsY, p1In(:, 1), p1In(:, 2));
 minBound           = round(min([xBound, yBound], [], 1));
 maxBound           = round(max([xBound, yBound], [], 1));
 [xMatrix, yMatrix] = meshgrid(minBound(1) : maxBound(1), minBound(2) : maxBound(2));
 xArray             = reshape(xMatrix, [numel(xMatrix), 1]);
 yArray             = reshape(yMatrix, [numel(yMatrix), 1]);
-tpsXinv            = est_tps(p2In(1, :), p2In(2, :), p1In(1, :));
-tpsYinv            = est_tps(p2In(1, :), p2In(2, :), p1In(2, :));
-[xSrcArr, ySrcArr] = apply_tps(xArray, yArray, tpsXinv, tpsYinv, p2In(1, :), p2In(2, :));
+tpsXinv            = est_tps(p2In(:, 1), p2In(:, 2), p1In(:, 1));
+tpsYinv            = est_tps(p2In(:, 1), p2In(:, 2), p1In(:, 2));
+[xSrcArr, ySrcArr] = apply_tps(xArray, yArray, tpsXinv, tpsYinv, p2In(:, 1), p2In(:, 2));
 xSrcArr            = round(xSrcArr);
 ySrcArr            = round(ySrcArr);
 
@@ -50,21 +53,18 @@ for i = 1 : length(xArray)
        continue; 
     end
     
-    % Blending
-    if all(Iout(yArray(i) - minMosaic(2) + 1, xArray(i) - minMosaic(1) + 1, :) == 0)
-        Iout(yArray(i) - minMosaic(2) + 1, xArray(i) - minMosaic(1) + 1, :) = Inew(ySrcArr(i), xSrcArr(i), :);
-    else
-        Iout(yArray(i) - minMosaic(2) + 1, xArray(i) - minMosaic(1) + 1, :) = blendFrac * Iout(yArray(i) - minMosaic(2) + 1, xArray(i) - minMosaic(1) + 1, :) ...
-                                              + (1 - blendFrac) * Inew(ySrcArr(i), xSrcArr(i), :);
-    end
+    % Alpha Blending
+    Iout(yArray(i) - minMosaic(2) + 1, xArray(i) - minMosaic(1) + 1, :) = ...
+        blendFrac * Iout(yArray(i) - minMosaic(2) + 1, xArray(i) - minMosaic(1) + 1, :) ...
+        + (1 - blendFrac) * Inew(ySrcArr(i), xSrcArr(i), :);
 end
 Iout = im2uint8(Iout);
 
-if verbose
+if ~verbose
    return; 
 end
 
-figure(44); clf;
+h = figure(44); clf;
 imagesc(Iout); axis image; title('Result after replacement');
 
 end

@@ -1,25 +1,29 @@
-function [tps] = est_tps(x, y, target)
+function  tps = est_tps(x, y, target_val, lambda)
+% EST_TPS estimates parameters for thin-plate_spline model
 % [tps] = EST_TPS(x, y, target)
-% x,y   - position in source image
-% target - x or y in target image
-% tps   - [a1; ax; ay; aw];
+% x,y    - position in source image n x 1
+% target - x or y in target image  n x 1
+% tps    - [a1; ax; ay; aw];
+% lambda - margin value for inverse
 
-n = size(x,1);
+% Initialize
+pts_num = length(x);
+pts     = [x, y];
+if nargin < 4
+    lambda  = 0.1;
+end
 
-% Calculate tps coefficients
-lambda = 0.1;
-D = bsxfun(@minus, x, x').^2 + bsxfun(@minus, y, y').^2;
-K = D .* log(D);
-K(isnan(K)) = 0;
-P = [x, y, ones(size(x))];
-A = [K + lambda*eye(n), P; P', zeros(3)];
-B = [target; zeros(3,1)];
-X = inv(A) * B;
+% Function handles
+mat_diff = @(vector) repmat(vector, 1, pts_num) - transpose(repmat(vector, 1, pts_num));
+U        = @(r_sqr) -r_sqr.* log(r_sqr);
 
-% Extract coefficients
-w  = X(1:n);
-ax = X(n+1);
-ay = X(n+2);
-a1 = X(n+3);
-tps = [a1; ax; ay; w];
+% Matrices and vectors
+P = [ones(pts_num, 1), pts];
+K = U(mat_diff(pts(:,1)).^2 + mat_diff(pts(:,2)).^2 + eps);
+A = [K + lambda*eye(pts_num), P; P', zeros(3)];
+v = [target_val; zeros(3,1)];
+
+% Compute and output results
+coef = A \ v;
+tps  = coef([end - 2, end - 1, end, 1 : end - 3]);
 end

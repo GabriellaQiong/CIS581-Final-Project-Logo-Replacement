@@ -47,9 +47,8 @@ end
 [rRef, cRef, ~] = size(Iref);
 [rNew, cNew, ~] = size(Inew);
 if rRef < rNew || cRef < cNew
-    Inew = imresize(Inew, [rRef / rNew /1.2, cRef / cNew / 1.2]);
+    Inew = imresize(Inew, min(rRef / rNew, cRef / cNew));
 end
-Inew = padarray(Inew, floor([(rRef-rNew) / 2, (cRef - cNew) / 2]), 'both', 'replicate');
 
 I = I(1 : Icount);
 fprintf('Load %d images. \n', Icount);
