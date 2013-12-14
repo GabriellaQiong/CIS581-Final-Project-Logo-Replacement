@@ -43,18 +43,19 @@ for i = 1:numFile
     end
 end
 
-% Handle different size of logos
-[rRef, cRef, ~] = size(Iref);
-[rNew, cNew, ~] = size(Inew);
-if rRef < rNew || cRef < cNew
-    Inew = imresize(Inew, [rRef / rNew /1.2, cRef / cNew / 1.2]);
-end
-Inew = padarray(Inew, floor([(rRef-rNew) / 2, (cRef - cNew) / 2]), 'both', 'replicate');
-% if rRef < rNew || cRef < cNew
-%     Inew = imresize(Inew, min(rRef / rNew, cRef / cNew));
-% end
-
 I = I(1 : Icount);
 fprintf('Load %d images. \n', Icount);
 close all
+
+% Compute the bounding box
+[~, ~, Iref] = imbbox(Iref, [], 1);
+[~, ~, Inew] = imbbox(Inew, [], 1);
+
+figure()
+subplot(1,2,1)
+imshow(Iref)
+title('Reference logo')
+subplot(1,2,2)
+imshow(Inew)
+title('New logo')
 end

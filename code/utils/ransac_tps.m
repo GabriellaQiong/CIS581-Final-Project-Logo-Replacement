@@ -10,9 +10,11 @@ function [tps_x, tps_y, inlier_ind, continue_flag] = ransac_tps(x1, y1, x2, y2, 
 % continue_flag  ---- whether to continue when with insufficient num_pts
 
 % Initialize
-if nargin < 5, thresh = 5; end
+if nargin < 5, thresh = 1.5; end
+% Make column vector
 y1 = y1(:); x1 = x1(:); 
 y2 = y2(:); x2 = x2(:);
+
 num_pts       = numel(y1);
 ind           = 1:num_pts;
 tps_x         = [];
@@ -22,7 +24,7 @@ continue_flag = 0;
 
 % Parameters
 percent_inlier = 0.99;  % stop when x% of the points are inlier
-iter = 300;             % ransac max iteration
+iter = 500;             % ransac max iteration
 
 
 % Check the num_pts more than 5

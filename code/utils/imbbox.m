@@ -11,6 +11,7 @@ function [ul_corner, width, im_box] = imbbox(im, level, verbose)
 % Check inputs
 if nargin == 1 || isempty(level), level = 0.8; end
 if nargin < 3, verbose = false; end
+[nr, nc, ~] = size(im);
 offset = 10;
 % Convert image to bw
 img = im2gray(im);
@@ -23,6 +24,8 @@ width = lr_corner - ul_corner + 1;
 % Add offest
 ul_corner = ul_corner - offset;
 lr_corner = lr_corner + offset;
+ul_corner = max(ul_corner, [1 1]);
+lr_corner = min(lr_corner, [nc nr]);
 width = width + 2*offset;
 % Extract image
 im_box = im(ul_corner(2):lr_corner(2), ul_corner(1):lr_corner(1), :);
