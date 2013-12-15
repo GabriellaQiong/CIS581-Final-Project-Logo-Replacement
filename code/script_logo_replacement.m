@@ -36,31 +36,6 @@ end
 if ~exist('Iall', 'var')
     [Iall, Iref, Inew] = load_images('../images/upenn/');
 end
-Iout  = cell(numel(Iall), 1);
 
 % Logo Replacement
-for imIdx = 2 : 2
-    fprintf('Processing image %d ... \n', imIdx);
-    [frames1, frames2, matches] = logo_detect_SIFT(Iref, Iall{imIdx});
-    p1 = [frames1(1,matches(1,:)); frames1(2,matches(1,:))];
-    p2 = [frames2(1,matches(2,:)); frames2(2,matches(2,:))];
-    thresh = 1;
-    [tpsX, tpsY, inlierInd, continueFlag] = ransac_tps(p1(1,:), p1(2,:), p2(1,:), p2(2,:), thresh);
-    if continueFlag
-        fprintf('Descriptors are not enough for image %d \n', imIdx);
-        continue;
-    end
-    
-    if verbose
-        h1 = ransac_plot(Iref, Iall{imIdx}, p1, p2, inlierInd, matches);     
-        fig_save(h1, fullfile(outputDir, sprintf('ransac_img%02d', imIdx)), 'png');
-    end
-    
-    p1New = mapcpt(Iref, Inew, p1);
-    try 
-    [Iout{imIdx}, h2] = logo_replace(Iall{imIdx}, Iref, Inew, tpsX, tpsY, p1New(:, inlierInd), p2(:, inlierInd), verbose);
-    fig_save(h2, fullfile(outputDir, sprintf('replace_img%02d', imIdx)), 'png');
-    catch
-        continue
-    end
-end
+Iout = logo_replacement_wrapper(Iall, Iref, Inew, outputDir, 13, verbose);

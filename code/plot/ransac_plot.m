@@ -12,7 +12,7 @@ hold on
 % Plot matching lines
 line([p1(1,:); p2(1,:) + o], [p1(2,:); p2(2,:)], 'Color', 'g')
 line([p1(1,inlier_ind); p2(1,inlier_ind) + o], ...
-     [p1(2,inlier_ind); p2(2,inlier_ind)], 'Color', 'r')
+     [p1(2,inlier_ind); p2(2,inlier_ind)], 'Color', 'm')
 % Plot matching points
 plot(p1(1,inlier_ind), p1(2,inlier_ind), 'r.')
 plot(p2(1,inlier_ind) + o, p2(2,inlier_ind), 'r.')
