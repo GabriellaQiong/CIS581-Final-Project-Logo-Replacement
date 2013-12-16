@@ -9,6 +9,8 @@ I1c = im2double(I1);
 I2c = im2double(I2);
 
 % Make gray
+Ie1 = edge(im2gray(I1));
+Ie2 = edge(im2gray(I2));
 I1  = im2gray(im2double(I1));
 I2  = im2gray(im2double(I2));
 
@@ -26,13 +28,11 @@ I2  = I2/max(I2(:)) ;
 S = 2;
 fprintf('Computing frames and descriptors.\n') ;
 [frames1, descr1, ~, dogss1] = sift( I1, 'Verbosity', 0, 'Threshold', ...
-                                     0.005, 'NumLevels', S ) ;
+                                     0.005, 'NumLevels', S );
 [frames2, descr2, ~, dogss2] = sift( I2, 'Verbosity', 0, 'Threshold', ...
-                                     0.005, 'NumLevels', S ) ;
-                                 
-
-
+                                     0.005, 'NumLevels', S );                                 
 fprintf('Computing matches.\n') ;
+
 % By passing to integers we greatly enhance the matching speed (we use
 % the scale factor 512 as Lowe's, but it could be greater without
 % overflow)

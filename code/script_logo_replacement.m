@@ -20,6 +20,7 @@ if ~exist(outputDir, 'dir')
 end
 addpath ./utils
 addpath ./plot
+addpath ./impyr
 
 % Toolbox
 if toolbox == 1
@@ -38,4 +39,4 @@ if ~exist('Iall', 'var')
 end
 
 % Logo Replacement
-Iout = logo_replacement_wrapper(Iall, Iref, Inew, outputDir, 13, verbose);
+Iout = logo_replacement_wrapper(Iall, Iref, Inew, outputDir, 4, verbose);

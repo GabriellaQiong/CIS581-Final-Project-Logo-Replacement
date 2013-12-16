@@ -11,7 +11,7 @@ function [Iout, boundPt, If] = improc(Iref, verbose, dilate)
 % boundPt -- n x 2 boundary points of convex hull
 
 if nargin < 3
-    dilate  = false;
+    dilate  = 0;
 end
 
 if nargin < 2
@@ -22,7 +22,7 @@ Ig   = rgb2gray(Iref);
 Ib   = ~ im2bw(Ig, 0.9);
 If   = imfill(Ib, 'holes'); 
 if dilate
-    If   = imdilate(If, ones(10));
+    If   = imdilate(If, ones(dilate));
 end
 Ibin = uint8(cat(3, If, If, If));
 Iout = Ibin .* Iref;

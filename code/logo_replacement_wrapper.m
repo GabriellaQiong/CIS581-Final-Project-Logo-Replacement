@@ -32,6 +32,9 @@ for imIdx = indices
     [frames1, frames2, matches] = logo_detect_SIFT(IrefBlack, Iall{imIdx});
     p1 = [frames1(1,matches(1,:)); frames1(2,matches(1,:))];
     p2 = [frames2(1,matches(2,:)); frames2(2,matches(2,:))];
+    
+    [p1, p2] = fix_match(p1, p2);
+    
     thresh = 1;
     [tpsX, tpsY, inlierInd, continueFlag] = ransac_tps(p1(1,:), p1(2,:), p2(1,:), p2(2,:), thresh);
     if continueFlag
@@ -44,11 +47,11 @@ for imIdx = indices
         fig_save(h1, fullfile(outputDir, sprintf('ransac_img%02d', imIdx)), 'png');
     end
     
-    try
+%     try
         [Iout{imIdx}, h2] = logo_replace(Iall{imIdx}, Iref, Inew, tpsX, tpsY, p1(:, inlierInd), p2(:, inlierInd), verbose);
         fig_save(h2, fullfile(outputDir, sprintf('replace_img%02d', imIdx)), 'png');
-    catch
-        warning('Something wrong')
-        continue
-    end
+%     catch
+%         warning('Something wrong')
+%         continue
+%     end
 end

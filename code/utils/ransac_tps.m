@@ -23,10 +23,12 @@ tps_x         = [];
 tps_y         = [];
 inlier_ind    = [];
 continue_flag = 0;
+num_cpt       = 4;
+best_ssd      = Inf;
 
 % Parameters
-percent_inlier = 0.99;  % stop when x% of the points are inlier
-iter = 500;             % ransac max iteration
+% percent_inlier = 0.95;  % stop when x% of the points are inlier
+iter = 2000;             % ransac max iteration
 
 % Check the num_pts more than 5
 if num_pts < 4
@@ -38,30 +40,31 @@ end
 % RANSAC
 for i = 1:iter
     perm = randperm(num_pts);
-    rand_ind = perm(1:6);
+    rand_ind = perm(1:num_cpt);
     % estimate tps from source(1) to destination(2)
     tps_x = est_tps(x1(rand_ind), y1(rand_ind), x2(rand_ind));
     tps_y = est_tps(x1(rand_ind), y1(rand_ind), y2(rand_ind));
     % apply tps on source(1) to corresponding points in destination(2)
+%     [x2_c, y2_c] = apply_tps(x1(rand_ind), y1(rand_ind), tps_x, tps_y, x1(rand_ind), y1(rand_ind));
+%     if size(unique([x2_c, y2_c], 'rows'), 1) < num_cpt
+%         tps_x
+%         tps_y
+%         continue;
+%     end
     [x2_est, y2_est] = apply_tps(x1, y1, tps_x, tps_y, x1(rand_ind), y1(rand_ind));
     dist = (x2_est - x2).^2 + (y2_est - y2).^2;
+    current_ssd = sum(dist);
     inlier = ind(dist < thresh^2);
     num_inlier = length(inlier);
-    if size(unique([x2(inlier), y2(inlier)], 'rows'), 1) < num_inlier
-        thresh = thresh + 0.5;
+    
+    if size(unique([x2(inlier), y2(inlier)], 'rows'), 1) < num_inlier / 2
         continue;
     end
-    
-    if num_inlier > (num_pts * percent_inlier)
-        % break if n% of the points are inlier
-        inlier_ind = inlier;
-        tps_x = est_tps(x1(inlier_ind), y1(inlier_ind), x2(inlier_ind));
-        tps_y = est_tps(x1(inlier_ind), y1(inlier_ind), y2(inlier_ind));
-        disp('break')
-        break
-    elseif num_inlier > length(inlier_ind)
+
+    if (num_inlier == length(inlier_ind) && (current_ssd < best_ssd)) || num_inlier > length(inlier_ind)
         % update best inlier
         inlier_ind = inlier;
+        best_ssd = current_ssd;
     end
 end
 tps_x = est_tps(x1(inlier_ind), y1(inlier_ind), x2(inlier_ind));

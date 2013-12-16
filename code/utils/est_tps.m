@@ -10,7 +10,7 @@ function  tps = est_tps(x, y, target_val, lambda)
 pts_num = length(x);
 pts     = [x, y];
 if nargin < 4
-    lambda  = 0.1;
+    lambda  = 0.01;
 end
 
 % Function handles

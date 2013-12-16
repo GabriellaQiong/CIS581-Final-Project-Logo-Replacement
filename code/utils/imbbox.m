@@ -12,7 +12,7 @@ function [ul_corner, width, im_box] = imbbox(im, level, verbose)
 if nargin == 1 || isempty(level), level = 0.8; end
 if nargin < 3, verbose = false; end
 [nr, nc, ~] = size(im);
-offset = 10;
+offset = 20;
 % Convert image to bw
 img = im2gray(im);
 bw = ~im2bw(im2gray(img), level);
