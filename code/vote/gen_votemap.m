@@ -50,7 +50,7 @@ axis image; axis ij; title('Votemap');
 
 
 % Process votemap to get hypocenter
-votemap(votemap < 0.52) = 0; % Set votemap threshhold
+votemap(votemap < 0.5) = 0; % Set votemap threshhold
 votemap_bin = imregionalmax(votemap, 4); % Get a binary map with centers
 [r, c] = find(votemap_bin);
 hypoCenter = [r(:)'; c(:)'];
@@ -63,5 +63,5 @@ end
 figure(); imagesc(Ides); hold on; axis image;
 plot(c, r, 'r+', 'MarkerSize', 10, 'LineWidth' ,3)
 hold off; title(sprintf('Detection results: %d instances found.', length(r)))
-
+fprintf('Detection results: %d instances found.\n', length(r))
 end

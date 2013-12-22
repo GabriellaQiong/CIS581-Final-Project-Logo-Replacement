@@ -27,7 +27,7 @@ frac  = 0;
 
 xBorder = [transpose(1 : xRef); ones(yRef, 1) * xRef; transpose(1 : xRef); ones(yRef, 1)];
 yBorder = [ones(xRef, 1); transpose(1 : yRef); ones(xRef, 1) * yRef; transpose(1 : yRef)];
-[xBound, yBound]   = apply_tps(xBorder, yBorder, tpsX, tpsY, p1In(:, 1), p1In(:, 2));
+[xBound, yBound]   = apply_tps_qiong(xBorder, yBorder, tpsX, tpsY, p1In(:, 1), p1In(:, 2));
 
 minBound           = round(min([xBound, yBound], [], 1));
 maxBound           = round(max([xBound, yBound], [], 1));
@@ -35,19 +35,11 @@ maxBound           = round(max([xBound, yBound], [], 1));
 [xMatrix, yMatrix] = meshgrid(minBound(1) : maxBound(1), minBound(2) : maxBound(2));
 xArray             = reshape(xMatrix, [numel(xMatrix), 1]);
 yArray             = reshape(yMatrix, [numel(yMatrix), 1]);
-tpsXinv            = est_tps(p2In(:, 1), p2In(:, 2), p1New(:, 1));
-tpsYinv            = est_tps(p2In(:, 1), p2In(:, 2), p1New(:, 2));
-[xRefArr, yRefArr] = apply_tps(xArray, yArray, tpsXinv, tpsYinv, p2In(:, 1), p2In(:, 2));
+tpsXinv            = est_tps_qiong(p2In(:, 1), p2In(:, 2), p1New(:, 1));
+tpsYinv            = est_tps_qiong(p2In(:, 1), p2In(:, 2), p1New(:, 2));
+[xRefArr, yRefArr] = apply_tps_qiong(xArray, yArray, tpsXinv, tpsYinv, p2In(:, 1), p2In(:, 2));
 xRefArr            = round(xRefArr);
 yRefArr            = round(yRefArr);
-
-% Handle bounds for stitched image
-% minMosaic   = min([minBound; [1 1]], [], 1);
-% maxMosaic   = max([maxBound; [xDes, yDes]], [], 1);
-% rangeMosaic = maxMosaic - minMosaic + 1;
-% Iout        = uint8(zeros(rangeMosaic(2), rangeMosaic(1), 3));
-% minDes      = 1 - (minMosaic ~= 1) .* minMosaic;
-% Iout(minDes(2) : (minDes(2) + yDes - 1), minDes(1) : (minDes(1) + xDes - 1), :) = Ides;
 
 minMosaic = [1 1];
 Iout      = Ides;
@@ -65,18 +57,19 @@ yRefArr   = yRefArr(effectIdx);
 [~, boundPtRef, ~]  = improc(Iref);
 [~, boundPtRefBig, ~] = improc(Iref, 0, 20);
 [~, ~, ImaskNew]  = improc(Inew);
-[xBoundPtSrc, yBoundPtSrc] =  apply_tps(boundPtRef(:,1), boundPtRef(:,2), tpsX, tpsY, p1In(:, 1), p1In(:, 2));
-[xBoundPtBigSrc, yBoundPtBigSrc] =  apply_tps(boundPtRefBig(:,1), boundPtRefBig(:,2), tpsX, tpsY, p1In(:, 1), p1In(:, 2));
+[xBoundPtSrc, yBoundPtSrc] =  apply_tps_qiong(boundPtRef(:,1), boundPtRef(:,2), tpsX, tpsY, p1In(:, 1), p1In(:, 2));
+[xBoundPtBigSrc, yBoundPtBigSrc] =  apply_tps_qiong(boundPtRefBig(:,1), boundPtRefBig(:,2), tpsX, tpsY, p1In(:, 1), p1In(:, 2));
 
-% figure();imagesc(Ides);axis image; hold on;
-% plot(xBound, yBound,'r.');
-% plot([minBound(1) minBound(1) maxBound(1) maxBound(1) minBound(1)],...
-% [minBound(2) maxBound(2) maxBound(2) minBound(2) minBound(2)],'b', 'LineWidth' ,2)
-% plot(xBoundPtSrc, yBoundPtSrc, 'm.'); 
-% plot(xBoundPtSrc, yBoundPtSrc, 'm-', 'LineWidth', 2);
-% plot(xBoundPtBigSrc, yBoundPtBigSrc, 'g.'); 
-% plot(xBoundPtBigSrc, yBoundPtBigSrc, 'g-', 'LineWidth', 2);
-% hold off
+figure();imagesc(Ides);axis image; hold on;
+plot(xBound, yBound,'r.');
+plot([minBound(1) minBound(1) maxBound(1) maxBound(1) minBound(1)],...
+[minBound(2) maxBound(2) maxBound(2) minBound(2) minBound(2)],'b', 'LineWidth' ,2)
+plot(xBoundPtSrc, yBoundPtSrc, 'm.'); 
+plot(xBoundPtSrc, yBoundPtSrc, 'm-', 'LineWidth', 2);
+plot(xBoundPtBigSrc, yBoundPtBigSrc, 'g.'); 
+plot(xBoundPtBigSrc, yBoundPtBigSrc, 'g-', 'LineWidth', 2);
+title('All kinds of bounding box')
+hold off
 
 % Carve out ref logo
 [X, Y] = meshgrid(1:xDes, 1:yDes);
@@ -110,9 +103,6 @@ for i = 1:numel(IN_box)
         Imask(Y(i), X(i), :) = 1;
     end
 end
-
-% figure()
-% imshow(Iout)
 
 if ~blend
     Iout = laplacian_blend(Ivex, Iout, Imask);

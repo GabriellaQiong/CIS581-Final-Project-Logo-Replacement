@@ -1,4 +1,4 @@
-function  tps = est_tps(x, y, target_val, lambda)
+function  tps = est_tps_qiong(x, y, target_val, lambda)
 % EST_TPS estimates parameters for thin-plate_spline model
 % [tps] = EST_TPS(x, y, target)
 % x,y    - position in source image n x 1
@@ -15,7 +15,7 @@ end
 
 % Function handles
 mat_diff = @(vector) repmat(vector, 1, pts_num) - transpose(repmat(vector, 1, pts_num));
-U        = @(r_sqr) -r_sqr.* log(r_sqr);
+U        = @(r_sqr) r_sqr.* log(r_sqr);
 
 % Matrices and vectors
 P = [ones(pts_num, 1), pts];

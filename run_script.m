@@ -3,6 +3,7 @@
 % Nov.28th, 2013
 
 % Parameters
+close all
 option    = 1;             % 0 -- option 1, 1 -- option 2(default)
 verbose   = true;         % Whether show stitching details
 
@@ -12,4 +13,4 @@ if ~exist('Iall', 'var')
 end
 
 %% Logo Replacement
-Iout = logo_replacement_wrapper(Iall, Iref, Inew, outputDir, 19, verbose);
+Iout = logo_replacement_wrapper(Iall, Iref, Inew, outputDir, [], verbose);

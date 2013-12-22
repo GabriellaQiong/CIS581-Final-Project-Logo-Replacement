@@ -17,5 +17,6 @@ line([p1(1,inlier_ind); p2(1,inlier_ind) + o], ...
 plot(p1(1,inlier_ind), p1(2,inlier_ind), 'r.')
 plot(p2(1,inlier_ind) + o, p2(2,inlier_ind), 'r.')
 hold off
-title('Result after TPS RANSAC');
+title(sprintf('Result after TPS RANSAC: %d/%d', numel(inlier_ind), length(p2)));
+% fprintf('RANSAC: \t%d/%d\n', numel(inlierInd), size(matches, 2))
 end
