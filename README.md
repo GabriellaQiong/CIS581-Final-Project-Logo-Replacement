@@ -79,9 +79,13 @@ How to match SIFT features:
                            and the distance to the *2nd-best* matching feature -- if the ratio of 
                                 closest distance to 2nd closest distance >0.8 then reject as a false match!
 ---
-INSTRUCTION FOR COMPILING THE SIFT LIBRARY
+COMPILING THE SIFT LIBRARY
 ---
 ```
 $ cd sift_vedaldi
 $ make
 ```
+---
+WORKFLOW
+---
+
