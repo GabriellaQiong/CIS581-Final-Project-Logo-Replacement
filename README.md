@@ -13,8 +13,7 @@ See the papers for more details:
 http://www.cs.ubc.ca/~lowe/keypoints/
  http://www.cs.toronto.edu/~kyros/courses/320/Lectures/lowe-sift-ijcv04.pdf
 
- We assume that keypoints have already been detected, as "corners" in 
- scale-space, namely local minima/maxima in 3x3x3 regions of the DOG 
+ We assume that keypoints have already been detected, as "corners" in scale-space, namely local minima/maxima in 3x3x3 regions of the DOG 
  (Difference-of-Gaussian) pyramids.
 
  How the SIFT feature descriptors are computed:
@@ -79,3 +78,10 @@ How to match SIFT features:
                       - better: compare the distance to best matching SIFT feature in the database, 
                            and the distance to the *2nd-best* matching feature -- if the ratio of 
                                 closest distance to 2nd closest distance >0.8 then reject as a false match!
+---
+INSTRUCTION FOR COMPILING THE SIFT LIBRARY
+---
+```
+$ cd sift_vedaldi
+$ make
+```
