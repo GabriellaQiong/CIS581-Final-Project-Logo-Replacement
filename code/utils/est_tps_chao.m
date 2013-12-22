@@ -11,7 +11,7 @@ y = y(:);
 target = target(:);
 
 % Calculate tps coefficients
-lambda = 0.1;
+lambda = 0.001;
 D = bsxfun(@minus, x, x').^2 + bsxfun(@minus, y, y').^2;
 K = D .* log(D);
 K(isnan(K)) = 0;

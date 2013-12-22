@@ -17,7 +17,7 @@ p1New = mapcpt(Iref, Inew, p1In);
 p1New = p1New';
 p1In  = p1In';
 p2In  = p2In';
-blend = 0;        %  0 -- pyramid, 1 -- alpha 
+blend = 1;        %  0 -- pyramid, 1 -- alpha 
 frac  = 0;
 
 % Handle the bounds
@@ -49,13 +49,6 @@ yRefArr            = round(yRefArr);
 % minDes      = 1 - (minMosaic ~= 1) .* minMosaic;
 % Iout(minDes(2) : (minDes(2) + yDes - 1), minDes(1) : (minDes(1) + xDes - 1), :) = Ides;
 
-% minMosaic   = [1 1];
-% maxMosaic   = [xDes, yDes];
-% rangeMosaic = maxMosaic - minMosaic + 1;
-% Iout        = uint8(zeros(rangeMosaic(2), rangeMosaic(1), 3));
-% minDes      = 1 - (minMosaic ~= 1) .* minMosaic;
-% Iout(minDes(2) : (minDes(2) + yDes - 1), minDes(1) : (minDes(1) + xDes - 1), :) = Ides;
-
 minMosaic = [1 1];
 Iout      = Ides;
 Imask     = zeros(yDes, xDes, 3);
@@ -68,20 +61,22 @@ xRefArr   = xRefArr(effectIdx);
 yRefArr   = yRefArr(effectIdx);
 
 % Debugging
-figure();imagesc(Ides);axis image; hold on;
-plot(xBound, yBound,'r.');
-plot([minBound(1) minBound(1) maxBound(1) maxBound(1) minBound(1)],...
-[minBound(2) maxBound(2) maxBound(2) minBound(2) minBound(2)],'b', 'LineWidth' ,2)
+
 [~, boundPtRef, ~]  = improc(Iref);
-[~, boundPtRefBig, ~] = improc(Iref, 0, 10);
+[~, boundPtRefBig, ~] = improc(Iref, 0, 20);
 [~, ~, ImaskNew]  = improc(Inew);
 [xBoundPtSrc, yBoundPtSrc] =  apply_tps(boundPtRef(:,1), boundPtRef(:,2), tpsX, tpsY, p1In(:, 1), p1In(:, 2));
 [xBoundPtBigSrc, yBoundPtBigSrc] =  apply_tps(boundPtRefBig(:,1), boundPtRefBig(:,2), tpsX, tpsY, p1In(:, 1), p1In(:, 2));
-plot(xBoundPtSrc, yBoundPtSrc, 'm.'); 
-plot(xBoundPtSrc, yBoundPtSrc, 'm-', 'LineWidth', 2);
-plot(xBoundPtBigSrc, yBoundPtBigSrc, 'g.'); 
-plot(xBoundPtBigSrc, yBoundPtBigSrc, 'g-', 'LineWidth', 2);
-hold off
+
+% figure();imagesc(Ides);axis image; hold on;
+% plot(xBound, yBound,'r.');
+% plot([minBound(1) minBound(1) maxBound(1) maxBound(1) minBound(1)],...
+% [minBound(2) maxBound(2) maxBound(2) minBound(2) minBound(2)],'b', 'LineWidth' ,2)
+% plot(xBoundPtSrc, yBoundPtSrc, 'm.'); 
+% plot(xBoundPtSrc, yBoundPtSrc, 'm-', 'LineWidth', 2);
+% plot(xBoundPtBigSrc, yBoundPtBigSrc, 'g.'); 
+% plot(xBoundPtBigSrc, yBoundPtBigSrc, 'g-', 'LineWidth', 2);
+% hold off
 
 % Carve out ref logo
 [X, Y] = meshgrid(1:xDes, 1:yDes);
@@ -92,7 +87,7 @@ yBoundConv = yBound(k);
 % IN_box = inpolygon(X, Y, xBoundConv, yBoundConv);
 IN_logo = inpolygon(X, Y, xBoundPtSrc, yBoundPtSrc);
 IN_box = inpolygon(X, Y, xBoundPtBigSrc, yBoundPtBigSrc);
-% pixelVal = [0;0;0];
+
 pixelValR = [];
 pixelValG = [];
 pixelValB = [];
@@ -100,17 +95,15 @@ n = 0;
 for i = 1:numel(IN_box)
     if ~IN_logo(i) && IN_box(i)
         n = n + 1;
-%         pixelVal = pixelVal + double(squeeze(Ides(Y(i), X(i), :)));
         pixelValR(end+1) = double(squeeze(Ides(Y(i), X(i), 1)));
         pixelValG(end+1) = double(squeeze(Ides(Y(i), X(i), 2)));
         pixelValB(end+1) = double(squeeze(Ides(Y(i), X(i), 3)));
     end
 end
-% pixelVal = uint8(pixelVal/n);
 pixelVal = [median(pixelValR), median(pixelValG), median(pixelValB)];
 Ivex     = uint8(cat(3, pixelVal(1) * ones(yDes, xDes), pixelVal(2) * ones(yDes, xDes), pixelVal(3) * ones(yDes, xDes)));
 
-% Carve out ref logo
+%Carve out ref logo
 for i = 1:numel(IN_box)
     if IN_box(i)
         Iout(Y(i), X(i), :) = pixelVal;

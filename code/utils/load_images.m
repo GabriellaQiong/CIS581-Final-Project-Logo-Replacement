@@ -1,14 +1,16 @@
 function [I, Iref, Inew]= load_images(path, visualize)
 if nargin < 2, visualize = false; end
-if nargin < 1, path = '../images/'; end
+if nargin < 1, path = './images/'; end
 
 imHeight = 700;
 imagePath = path;
 imageExtension = {'.jpg', '.jpeg', '.png', '.tiff', '.bmp'};
 fileListing = dir(imagePath);
 numFile = length(fileListing);
-I = cell(1, numFile);
+
+I = cell(1, numFile); % Initialize output cell
 Icount = 0;
+
 for i = 1:numFile
     [~, fileName, fileExtension] = fileparts(fileListing(i).name);
     % check if file is image
@@ -47,10 +49,11 @@ I = I(1 : Icount);
 fprintf('Load %d images. \n', Icount);
 close all
 
-% Compute the bounding box
+% Extract image in bounding box
 [~, ~, Iref] = imbbox(Iref, [], 1);
 [~, ~, Inew] = imbbox(Inew, [], 1);
 
+% Show final results
 figure()
 subplot(1,2,1)
 imshow(Iref)

@@ -1,4 +1,4 @@
-function [frames1, frames2, matches] = logo_detect_SIFT(I1, I2, verbose)
+function [frames1, frames2, desc1, desc2, matches] = logo_detect_SIFT(I1, I2, verbose)
 % [frames1, frames2, matches] = SIFT_DESC(I1, I2, verbose)
 
 if nargin < 3
@@ -27,19 +27,19 @@ I2  = I2/max(I2(:)) ;
 % SIFT descriptors
 S = 2;
 fprintf('Computing frames and descriptors.\n') ;
-[frames1, descr1, ~, dogss1] = sift( I1, 'Verbosity', 0, 'Threshold', ...
+[frames1, desc1, ~, dogss1] = sift( I1, 'Verbosity', 0, 'Threshold', ...
                                      0.005, 'NumLevels', S );
-[frames2, descr2, ~, dogss2] = sift( I2, 'Verbosity', 0, 'Threshold', ...
+[frames2, desc2, ~, dogss2] = sift( I2, 'Verbosity', 0, 'Threshold', ...
                                      0.005, 'NumLevels', S );                                 
 fprintf('Computing matches.\n') ;
 
 % By passing to integers we greatly enhance the matching speed (we use
 % the scale factor 512 as Lowe's, but it could be greater without
 % overflow)
-descr1  = uint8(512*descr1) ;
-descr2  = uint8(512*descr2) ;
+desc1  = uint8(512*desc1) ;
+desc2  = uint8(512*desc2) ;
 tic ;
-matches = siftmatch( descr1, descr2 ) ;
+[matches, ~] = siftmatch( desc1, desc2 ) ;
 fprintf('Found %d matches in %.3f s\n', size(matches,2), toc) ;
 
 if ~verbose
