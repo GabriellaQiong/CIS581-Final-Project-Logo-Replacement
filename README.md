@@ -88,4 +88,11 @@ $ make
 ---
 WORKFLOW
 ---
+process reference image -> detect SIFT descriptor -> generate codebook for reference image
+-> generate votemap for destination image -> estimate tps parameters using RANSAC
+-> get bounding box of reference logo in destination image -> carve out the logo and fill in background color
+-> laplacian blending for better visual effect -> replace reference logo with our own logo
+---
+STRENGTH AND WEAKNESS
+---
 
