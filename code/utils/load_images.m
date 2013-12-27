@@ -1,5 +1,5 @@
-function [I, Iref, Inew]= load_images(path, visualize)
-if nargin < 2, visualize = false; end
+function [I, Iref, Inew]= load_images(path, verbose)
+if nargin < 2, verbose = false; end
 if nargin < 1, path = './images/'; end
 
 imHeight = 700;
@@ -34,7 +34,7 @@ for i = 1:numFile
         Icount = Icount + 1;
         I{Icount} = im;
         
-        if visualize
+        if verbose
             figure();
             imshow(I{Icount})
             drawnow
@@ -50,10 +50,13 @@ fprintf('Load %d images. \n', Icount);
 close all
 
 % Extract image in bounding box
-[~, ~, Iref] = imbbox(Iref, [], 1);
-[~, ~, Inew] = imbbox(Inew, [], 1);
+[~, ~, Iref] = imbbox(Iref, []);
+[~, ~, Inew] = imbbox(Inew, []);
 
 % Show final results
+if ~verbose
+    return; 
+end
 figure()
 subplot(1,2,1)
 imshow(Iref)

@@ -17,7 +17,7 @@ p1New = mapcpt(Iref, Inew, p1In);
 p1New = p1New';
 p1In  = p1In';
 p2In  = p2In';
-blend = 1;        %  0 -- pyramid, 1 -- alpha 
+blend = 0;        %  0 -- pyramid, 1 -- alpha 
 frac  = 0;
 
 % Handle the bounds
@@ -53,11 +53,10 @@ xRefArr   = xRefArr(effectIdx);
 yRefArr   = yRefArr(effectIdx);
 
 % Debugging
-
-[~, boundPtRef, ~]  = improc(Iref);
+[~, boundPtRef, ~]    = improc(Iref);
 [~, boundPtRefBig, ~] = improc(Iref, 0, 20);
-[~, ~, ImaskNew]  = improc(Inew);
-[xBoundPtSrc, yBoundPtSrc] =  apply_tps_qiong(boundPtRef(:,1), boundPtRef(:,2), tpsX, tpsY, p1In(:, 1), p1In(:, 2));
+[~, ~, ImaskNew]      = improc(Inew);
+[xBoundPtSrc, yBoundPtSrc]       =  apply_tps_qiong(boundPtRef(:,1), boundPtRef(:,2), tpsX, tpsY, p1In(:, 1), p1In(:, 2));
 [xBoundPtBigSrc, yBoundPtBigSrc] =  apply_tps_qiong(boundPtRefBig(:,1), boundPtRefBig(:,2), tpsX, tpsY, p1In(:, 1), p1In(:, 2));
 
 figure();imagesc(Ides);axis image; hold on;
@@ -79,7 +78,7 @@ xBoundConv = xBound(k);
 yBoundConv = yBound(k);
 % IN_box = inpolygon(X, Y, xBoundConv, yBoundConv);
 IN_logo = inpolygon(X, Y, xBoundPtSrc, yBoundPtSrc);
-IN_box = inpolygon(X, Y, xBoundPtBigSrc, yBoundPtBigSrc);
+IN_box  = inpolygon(X, Y, xBoundPtBigSrc, yBoundPtBigSrc);
 
 pixelValR = [];
 pixelValG = [];
@@ -106,8 +105,6 @@ end
 
 if ~blend
     Iout = laplacian_blend(Ivex, Iout, Imask);
-    figure(); imshow(Iout);
-    % figure(); imshow(Ivex);
 end
 
 for i = 1 : length(xArray)

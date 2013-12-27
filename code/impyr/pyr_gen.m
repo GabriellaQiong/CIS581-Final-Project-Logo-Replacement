@@ -9,7 +9,7 @@ function [ pyr ] = pyr_gen( img, type, level )
 pyr = cell(1,level);
 pyr{1} = im2double(img);
 for p = 2:level
-	pyr{p} = pyr_reduce(pyr{p-1});
+	pyr{p} = impyramid(pyr{p-1}, 'reduce');
 end
 if strcmp(type,'gauss'), return; end
 
@@ -19,7 +19,7 @@ for p = level-1:-1:1 % adjust the image size
 end
 
 for p = 1:level-1
-	pyr{p} = pyr{p}-pyr_expand(pyr{p+1});
+	pyr{p} = pyr{p}-impyramid(pyr{p+1}, 'expand');
 end
 
 end

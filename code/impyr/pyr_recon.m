@@ -5,7 +5,7 @@ function [ img ] = pyr_recon( pyr )
 %		Yan Ke @ THUEE, xjed09@gmail.com
 
 for p = length(pyr)-1:-1:1
-	pyr{p} = pyr{p} + pyr_expand(pyr{p+1});
+	pyr{p} = pyr{p} + impyramid(pyr{p+1}, 'expand');
 end
 img = pyr{1};
 

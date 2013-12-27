@@ -2,10 +2,14 @@
 % Written by Chao Qu, Qiong Wang at University of Pennsylvania
 % Nov.28th, 2013
 
-% Parameters
+% Start up and clear up
+startup;
+clc
 close all
-option    = 1;             % 0 -- option 1, 1 -- option 2(default)
-verbose   = true;         % Whether show stitching details
+
+% Parameters
+option  = 1;            % 0 -- option 1, 1 -- option 2(default)
+verbose = true;         % Whether show stitching details
 
 %% Load test images
 if ~exist('Iall', 'var')
@@ -13,4 +17,4 @@ if ~exist('Iall', 'var')
 end
 
 %% Logo Replacement
-Iout = logo_replacement_wrapper(Iall, Iref, Inew, outputDir, [], verbose);
+Iout = logo_replacement_wrapper(Iall, Iref, Inew, outputDir, 9, verbose);
