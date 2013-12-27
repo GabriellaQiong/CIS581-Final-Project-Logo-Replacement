@@ -28,7 +28,7 @@ best_ssd      = Inf;
 
 % Parameters
 % percent_inlier = 0.95;  % stop when x% of the points are inlier
-iter = 8000;             % ransac max iteration
+iter = 2000;             % ransac max iteration
 
 % Check the num_pts more than 5
 if num_pts < 4
